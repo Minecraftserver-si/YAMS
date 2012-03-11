@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Data.SqlServerCe;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using MySql.Data.MySqlClient;
 using YAMS;
 
 namespace YAMS
@@ -45,11 +45,12 @@ namespace YAMS
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
 
             //Fill up some vars
-            AutoUpdate.bolUpdateAddons = Convert.ToBoolean(Database.GetSetting("UpdateAddons", "YAMS"));
+            /*AutoUpdate.bolUpdateAddons = Convert.ToBoolean(Database.GetSetting("UpdateAddons", "YAMS"));
             AutoUpdate.bolUpdateGUI = Convert.ToBoolean(Database.GetSetting("UpdateGUI", "YAMS"));
             AutoUpdate.bolUpdateJAR = Convert.ToBoolean(Database.GetSetting("UpdateJAR", "YAMS"));
             AutoUpdate.bolUpdateSVC = Convert.ToBoolean(Database.GetSetting("UpdateSVC", "YAMS"));
-            AutoUpdate.bolUpdateWeb = Convert.ToBoolean(Database.GetSetting("UpdateWeb", "YAMS"));
+            AutoUpdate.bolUpdateWeb = Convert.ToBoolean(Database.GetSetting("UpdateWeb", "YAMS"));*/
+            //Disable autoupdate !!
             StoragePath = Database.GetSetting("StoragePath", "YAMS");
 
             //Are there any PIDs we previously started still running?
@@ -88,10 +89,10 @@ namespace YAMS
             };
 
             //Check for updates
-            AutoUpdate.CheckUpdates();
+            //AutoUpdate.CheckUpdates();
 
             //Load any servers
-            SqlCeDataReader readerServers = YAMS.Database.GetServers();
+            MySqlDataReader readerServers = YAMS.Database.GetServers();
             while (readerServers.Read())
             {
                 Database.AddLog("Starting Server " + readerServers["ServerID"]);

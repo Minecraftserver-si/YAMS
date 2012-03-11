@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Data.SqlServerCe;
+using MySql.Data.MySqlClient;
 using YAMS;
 
 namespace YAMS
@@ -34,7 +34,7 @@ namespace YAMS
             if (intMinutes % 5 == 0 && Database.GetSetting("DNSName", "YAMS") != "") Util.UpdateDNS();
 
             //Get jobs for current minute
-            SqlCeDataReader rdJobs = Database.GetJobs(intHour, intMinutes);
+            MySqlDataReader rdJobs = Database.GetJobs(intHour, intMinutes);
 
             MCServer s;
 

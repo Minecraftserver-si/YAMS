@@ -1,37 +1,40 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlServerCe;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
+using MySql.Data.MySqlClient;
 
 namespace YAMS
 {
     public class Database
     {
-        private static SqlCeConnection connLocal;
+        private static MySqlConnection conn;
 
         private static DateTime defaultDateTime = new DateTime(1900, 1, 1);
 
         public static void init()
         {
             //Open our DB connection for use all over the place
-            connLocal = GetConnection();
-            connLocal.Open();
+            conn = GetConnection();
+            conn.Open();
             UpdateDB();
         }
 
-        private static SqlCeConnection GetConnection()
+        private static MySqlConnection GetConnection()
         {
-            string dbfile = YAMS.Core.RootFolder + "\\db\\dbYAMS.sdf";
-            SqlCeConnection connection = new SqlCeConnection("datasource=" + dbfile + ";max database size=2048");
+            string MyConString = "Server=192.168.8.203;PORT=3306;" +
+                "Database=yams;" +
+                "Uid=yams;" +
+                "Pwd=yams;";
+            MySqlConnection connection = new MySqlConnection(MyConString);
             return connection;
         }
 
         public static DataSet ReturnLogRows(int intStartID = 0, int intNumRows = 0, string strLevels = "all", int intServerID = -1)
         {
             DataSet ds = new DataSet();
-            SqlCeCommand command = connLocal.CreateCommand();
+            MySqlCommand command = conn.CreateCommand();
 
             //We need to limit the number of rows or requests take an age and crash browsers
             if (intNumRows == 0) intNumRows = 1000;
@@ -48,7 +51,7 @@ namespace YAMS
             strSQL.Append("ORDER BY LogDateTime DESC, LogID ASC");
 
             command.CommandText = strSQL.ToString();
-            SqlCeDataAdapter adapter = new SqlCeDataAdapter(command);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(command);
             adapter.Fill(ds);
             return ds;
         }
@@ -56,10 +59,10 @@ namespace YAMS
         public static DataSet ReturnSettings()
         {
             DataSet ds = new DataSet();
-            SqlCeCommand command = connLocal.CreateCommand();
+            MySqlCommand command = conn.CreateCommand();
 
             command.CommandText = "SELECT * FROM YAMSSettings";
-            SqlCeDataAdapter adapter = new SqlCeDataAdapter(command);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(command);
             adapter.Fill(ds);
             return ds;
         }
@@ -72,7 +75,7 @@ namespace YAMS
             try
             {
                 if (strMessage.Length > 255) strMessage = strMessage.Substring(0, 255);
-                SqlCeCommand cmdIns = new SqlCeCommand(sqlIns, connLocal);
+                MySqlCommand cmdIns = new MySqlCommand(sqlIns, conn);
                 cmdIns.Parameters.Add("@source", strSource);
                 cmdIns.Parameters.Add("@msg", Util.Left(strMessage, 255));
                 cmdIns.Parameters.Add("@level", strLevel);
@@ -94,7 +97,7 @@ namespace YAMS
             string sqlIns = "INSERT INTO Log (LogSource, LogMessage, LogLevel, ServerID, LogDateTime) VALUES (@source, @msg, @level, @serverid, @timestamp)";
             try
             {
-                SqlCeCommand cmdIns = new SqlCeCommand(sqlIns, connLocal);
+                MySqlCommand cmdIns = new MySqlCommand(sqlIns, conn);
                 cmdIns.Parameters.Add("@source", strSource);
                 cmdIns.Parameters.Add("@msg", Util.Left(strMessage, 255));
                 cmdIns.Parameters.Add("@level", strLevel);
@@ -117,7 +120,7 @@ namespace YAMS
         {
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand("SELECT VersionETag FROM FileVersions WHERE VersionURL = @url", connLocal);
+                MySqlCommand cmd = new MySqlCommand("SELECT VersionETag FROM FileVersions WHERE VersionURL = @url", conn);
                 cmd.Parameters.Add("@url", strURL);
                 string eTag = (string)cmd.ExecuteScalar();
                 return eTag;
@@ -132,8 +135,8 @@ namespace YAMS
         //Sets the Etag for a URL, replacing or adding the URL as needed
         public static bool SaveEtag(string strUrl, string strEtag)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             if (GetEtag(strUrl) == null)
             {
                 //Doesn't exist in DB already, so insert
@@ -157,9 +160,9 @@ namespace YAMS
             sb.Append("#Minecraft server properties: built by YAMS\n");
             //sb.Append("#Sun Nov 28 19:26:26 GMT 2010\n");
 
-            SqlCeCommand comProperties = new SqlCeCommand("SELECT * FROM MCSettings WHERE ServerID = @serverid", connLocal);
+            MySqlCommand comProperties = new MySqlCommand("SELECT * FROM MCSettings WHERE ServerID = @serverid", conn);
             comProperties.Parameters.Add("@serverid", intServerID);
-            SqlCeDataReader readerProperties = null;
+            MySqlDataReader readerProperties = null;
             readerProperties = comProperties.ExecuteReader();
             while (readerProperties.Read())
             {
@@ -170,13 +173,14 @@ namespace YAMS
             string strFile = @"\server.properties";
             if (File.Exists(Core.StoragePath + intServerID.ToString() + strFile)) strFile = @"\server.properties.UPDATE";
             File.WriteAllText(Core.StoragePath + intServerID.ToString() + strFile, sb.ToString());
+            readerProperties.Close();
         }
 
         //Get and set settings
         public static bool SaveSetting(string strSettingName, string strSettingValue)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
 
             if (GetSetting(strSettingName, "YAMS") == null)
             {
@@ -195,8 +199,8 @@ namespace YAMS
         }
         public static bool SaveSetting(int intServerID, string strSettingName, string strSettingValue)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
 
             if (GetSetting(strSettingName, "MC", intServerID) == null)
             {
@@ -231,7 +235,7 @@ namespace YAMS
 
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand("SELECT SettingValue FROM " + strTableName + " WHERE SettingName = @name", connLocal);
+                MySqlCommand cmd = new MySqlCommand("SELECT SettingValue FROM " + strTableName + " WHERE SettingName = @name", conn);
                 cmd.Parameters.Add("@name", strSettingName);
                 string strSettingValue = (string)cmd.ExecuteScalar();
                 return strSettingValue;
@@ -248,7 +252,7 @@ namespace YAMS
 
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand("SELECT " + strSettingName + " FROM MCServers WHERE ServerID = @id", connLocal);
+                MySqlCommand cmd = new MySqlCommand("SELECT " + strSettingName + " FROM MCServers WHERE ServerID = @id", conn);
                 cmd.Parameters.Add("@id", intServerID);
                 var strSettingValue = cmd.ExecuteScalar();
                 return strSettingValue;
@@ -263,8 +267,8 @@ namespace YAMS
 
         public static int NewServer(List<KeyValuePair<string, string>> listServer, string strServerTitle, int intServerMemory = 1024)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
 
             //Create the server and get an ID
             cmd.CommandText = "INSERT INTO MCServers (ServerTitle, ServerWrapperMode, ServerAssignedMemory) VALUES (@title, 0, @mem)";
@@ -272,8 +276,16 @@ namespace YAMS
             cmd.Parameters.Add("@mem", intServerMemory);
             cmd.ExecuteNonQuery();
             cmd.Parameters.Clear();
-            cmd.CommandText = "SELECT @@IDENTITY";
-            int intNewID = Convert.ToInt32(cmd.ExecuteScalar());
+            cmd.CommandText = "SELECT ServerID FROM MCServers WHERE ServerTitle = @title";
+            cmd.Parameters.Add("@title", strServerTitle);
+            MySqlDataReader r = cmd.ExecuteReader();
+            int intNewID = 0;
+            if (r.HasRows)
+            {
+                r.Read();
+                intNewID = r.GetInt32("ServerID");
+                r.Close();
+            }
 
             //Insert the settings into the DB for this server
             foreach (var element in listServer)
@@ -306,8 +318,8 @@ namespace YAMS
 
         public static void DeleteServer(int intServerID)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = "DELETE FROM MCServers WHERE ServerID = @id;";
             cmd.Parameters.Add("@id", intServerID);
 
@@ -316,8 +328,8 @@ namespace YAMS
 
         public static int NewServerWeb(List<KeyValuePair<string, string>> listServer, string strServerTitle, int intServerMemory = 1024)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
 
             //Create the server and get an ID
             cmd.CommandText = "INSERT INTO MCServers (ServerTitle, ServerWrapperMode, ServerAssignedMemory, ServerAutostart) VALUES (@title, 0, @mem, 0)";
@@ -325,8 +337,16 @@ namespace YAMS
             cmd.Parameters.Add("@mem", intServerMemory);
             cmd.ExecuteNonQuery();
             cmd.Parameters.Clear();
-            cmd.CommandText = "SELECT @@IDENTITY";
-            int intNewID = Convert.ToInt32(cmd.ExecuteScalar());
+            cmd.CommandText = "SELECT ServerID FROM MCServers WHERE ServerTitle = @title";
+            cmd.Parameters.Add("@title", strServerTitle);
+            MySqlDataReader r = cmd.ExecuteReader();
+            int intNewID = 0;
+            if (r.HasRows)
+            {
+                r.Read();
+                intNewID = r.GetInt32("ServerID");
+                r.Close();
+            }
 
             //Set up Files + Folders
             if (!Directory.Exists(Core.StoragePath + intNewID.ToString())) Directory.CreateDirectory(Core.StoragePath + intNewID.ToString());
@@ -364,8 +384,8 @@ namespace YAMS
 
         public static bool UpdateServer(int intServerID, string strSettingName, object strSettingValue)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
 
             cmd.CommandText = "UPDATE MCServers SET " + strSettingName + "=@value WHERE ServerID=@id;";
             cmd.Parameters.Add("@value", strSettingValue);
@@ -416,10 +436,10 @@ namespace YAMS
 
         }
 
-        public static SqlCeDataReader GetServers()
+        public static MySqlDataReader GetServers()
         {
-            SqlCeCommand comServers = new SqlCeCommand("SELECT * FROM MCServers", connLocal);
-            SqlCeDataReader readerServers = null;
+            MySqlCommand comServers = new MySqlCommand("SELECT * FROM MCServers", conn);
+            MySqlDataReader readerServers = null;
             readerServers = comServers.ExecuteReader();
             return readerServers;
         }
@@ -427,8 +447,8 @@ namespace YAMS
         //User Functions
         public static bool AddUser(string strUsername, int intServerID, string strLevel = "guest")
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = "INSERT INTO Players (PlayerName, PlayerServer, PlayerLevel) VALUES (@name, @server, @level);";
             cmd.Parameters.Add("@name", strUsername);
             cmd.Parameters.Add("@server", intServerID);
@@ -441,7 +461,7 @@ namespace YAMS
         {
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand("SELECT PlayerLevel FROM Players WHERE PlayerName = @name AND PlayerServer = @id", connLocal);
+                MySqlCommand cmd = new MySqlCommand("SELECT PlayerLevel FROM Players WHERE PlayerName = @name AND PlayerServer = @id", conn);
                 cmd.Parameters.Add("@id", intServerID);
                 cmd.Parameters.Add("@name", strName);
                 var strSettingValue = (string)cmd.ExecuteScalar();
@@ -458,7 +478,7 @@ namespace YAMS
         {
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand("SELECT COUNT(PlayerID) AS Counter FROM Players WHERE PlayerServer = @id", connLocal);
+                MySqlCommand cmd = new MySqlCommand("SELECT COUNT(PlayerID) AS Counter FROM Players WHERE PlayerServer = @id", conn);
                 cmd.Parameters.Add("@id", intServerID);
                 var intSettingValue = (int)cmd.ExecuteScalar();
                 return intSettingValue;
@@ -473,28 +493,28 @@ namespace YAMS
         public static DataSet GetPlayers(int intServerID)
         {
             DataSet ds = new DataSet();
-            SqlCeCommand comPlayers = new SqlCeCommand("SELECT * FROM Players WHERE PlayerServer = @id", connLocal);
+            MySqlCommand comPlayers = new MySqlCommand("SELECT * FROM Players WHERE PlayerServer = @id", conn);
             comPlayers.Parameters.Add("@id", intServerID);
-            SqlCeDataAdapter adapter = new SqlCeDataAdapter(comPlayers);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(comPlayers);
             adapter.Fill(ds);
             return ds;
         }
 
         //Job Engine
-        public static SqlCeDataReader GetJobs(int intHour, int intMinute)
+        public static MySqlDataReader GetJobs(int intHour, int intMinute)
         {
-            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM Jobs WHERE (JobHour = -1 AND JobMinute = @minute) OR (JobHour = @hour AND JobMinute = @minute)", connLocal);
+            MySqlCommand cmd = new MySqlCommand("SELECT * FROM Jobs WHERE (JobHour = -1 AND JobMinute = @minute) OR (JobHour = @hour AND JobMinute = @minute)", conn);
             cmd.Parameters.Add("@minute", intMinute);
             cmd.Parameters.Add("@hour", intHour);
-            SqlCeDataReader readerJobs = null;
+            MySqlDataReader readerJobs = null;
             readerJobs = cmd.ExecuteReader();
             return readerJobs;
         }
 
         public static bool AddJob(string strAction, int intHour, int intMinute, string strParams, int intServerID)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = "INSERT INTO Jobs (JobAction, JobHour, JobMinute, JobParams, JobServer) VALUES (@action, @hour, @minute, @params, @server);";
             cmd.Parameters.Add("@action", strAction);
             cmd.Parameters.Add("@hour", intHour);
@@ -508,16 +528,16 @@ namespace YAMS
         public static DataSet ListJobs()
         {
             DataSet ds = new DataSet();
-            SqlCeCommand cmd = new SqlCeCommand("SELECT Jobs.*, MCServers.ServerTitle FROM Jobs LEFT JOIN MCServers ON Jobs.JobServer = MCServers.ServerID", connLocal);
-            SqlCeDataAdapter adapter = new SqlCeDataAdapter(cmd);
+            MySqlCommand cmd = new MySqlCommand("SELECT Jobs.*, MCServers.ServerTitle FROM Jobs LEFT JOIN MCServers ON Jobs.JobServer = MCServers.ServerID", conn);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
             adapter.Fill(ds);
             return ds;
         }
 
         public static void DeleteJob(string strJobID)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = "DELETE FROM Jobs WHERE JobID = @jobid;";
             cmd.Parameters.Add("@jobid", Convert.ToInt32(strJobID));
 
@@ -526,23 +546,23 @@ namespace YAMS
 
         public static void ClearLogs(string strPeriod, int intAmount)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = "DELETE FROM Log WHERE LogDateTime < DATEADD(" + strPeriod + ", -" + intAmount + ", GETDATE());";
             cmd.ExecuteNonQuery();
         }
 
         public static void ExecuteSQL(string strSQL)
         {
-            SqlCeCommand cmd = new SqlCeCommand();
-            cmd.Connection = connLocal;
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
             cmd.CommandText = strSQL;
             cmd.ExecuteNonQuery();
         }
 
         ~Database()
         {
-            connLocal.Close();
+            conn.Close();
         }
 
     }

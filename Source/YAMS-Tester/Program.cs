@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using YAMS;
 using System.Reflection;
 using System.IO;
-using System.Data.SqlServerCe;
+using MySql.Data.MySqlClient;
 
 namespace YAMS_Gui
 {
@@ -28,7 +28,7 @@ namespace YAMS_Gui
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
             Database.SaveSetting("AdminPassword", "password");
 
-            SqlCeDataReader readerServers = YAMS.Database.GetServers();
+            MySqlDataReader readerServers = YAMS.Database.GetServers();
             while (readerServers.Read())
             {
                 Database.AddLog("Starting Server " + readerServers["ServerID"]);

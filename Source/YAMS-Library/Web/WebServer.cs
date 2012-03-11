@@ -14,7 +14,7 @@ using HttpServer.Modules;
 using HttpServer.Resources;
 using HttpServer.Tools;
 using Newtonsoft.Json;
-using System.Data.SqlServerCe;
+using MySql.Data.MySqlClient;
 using HttpListener = HttpServer.HttpListener;
 using YAMS;
 
@@ -74,7 +74,7 @@ namespace YAMS
                 publicServer = new Server();
                 var publicModule = new FileModule();
                 publicModule.Resources.Add(new FileResources("/assets/", YAMS.Core.RootFolder + "\\web\\assets\\"));
-                SqlCeDataReader readerServers = YAMS.Database.GetServers();
+                MySqlDataReader readerServers = YAMS.Database.GetServers();
                 while (readerServers.Read())
                 {
                     var intServerID = readerServers["ServerID"].ToString();
