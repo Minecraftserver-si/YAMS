@@ -243,48 +243,6 @@ namespace YAMS.Web
                         case "get-server-whitelist":
                             strResponse = "{ \"enabled\" : " + Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].GetProperty("white-list") + " }";
                             break;
-                        case "upload-world":
-                            var test = context.Request.Files["new-world"];
-                            break;
-                        case "delete-world":
-                            bool bolRandomSeed = false;
-                            if (param["randomseed"] == "true") bolRandomSeed = true;
-                            Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].ClearWorld(bolRandomSeed);
-                            strResponse = "{ \"result\" : \"sent\" }";
-                            break;
-                        case "remove-server":
-                            Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].Stop();
-                            Core.Servers.Remove(Convert.ToInt32(context.Request.Parameters["serverid"]));
-                            Database.DeleteServer(Convert.ToInt32(context.Request.Parameters["serverid"]));
-                            strResponse = "{ \"result\" : \"removed\" }";
-                            break;
-                        case "about":
-                            Dictionary<string, string> dicAbout = new Dictionary<string, string> {
-                                { "dll" , FileVersionInfo.GetVersionInfo(Path.Combine(Core.RootFolder, "YAMS-Library.dll")).FileVersion },
-                                { "svc" , FileVersionInfo.GetVersionInfo(Path.Combine(Core.RootFolder, "YAMS-Service.exe")).FileVersion },
-                                { "gui" , FileVersionInfo.GetVersionInfo(Path.Combine(Core.RootFolder, "YAMS-Updater.exe")).FileVersion },
-                                { "db" , Database.GetSetting("DBSchema", "YAMS") }
-                            };
-                            strResponse = JsonConvert.SerializeObject(dicAbout, Formatting.Indented);
-                            break;
-                        case "installed-apps":
-                            Dictionary<string, string> dicApps = new Dictionary<string, string> {
-                                { "bukkit" , Database.GetSetting("BukkitInstalled", "YAMS") },
-                                { "overviewer" , Database.GetSetting("OverviewerInstalled", "YAMS") },
-                                { "c10t" , Database.GetSetting("C10tInstalled", "YAMS") },
-                                { "biomeextractor" , Database.GetSetting("BiomeExtractorInstalled", "YAMS") },
-                                { "tectonicus" , Database.GetSetting("TectonicusInstalled", "YAMS") },
-                                { "nbtoolkit" , Database.GetSetting("NBToolkitInstalled", "YAMS") }
-                            };
-                            strResponse = JsonConvert.SerializeObject(dicApps, Formatting.Indented);
-                            break;
-                        case "update-apps":
-                            Database.SaveSetting("OverviewerInstalled", param["overviewer"]);
-                            Database.SaveSetting("C10tInstalled", param["c10t"]);
-                            Database.SaveSetting("BiomeExtractorInstalled", param["biomeextractor"]);
-                            Database.SaveSetting("BukkitInstalled", param["bukkit"]);
-                            strResponse = "done";
-                            break;
                         case "network-settings":
                             List<string> listIPs = new List<string>();
                             IPHostEntry ipListen = Dns.GetHostEntry("");
@@ -298,7 +256,6 @@ namespace YAMS.Web
                                 { "openFirewall" , Database.GetSetting("EnableOpenFirewall", "YAMS") },
                                 { "publicEnable" , Database.GetSetting("EnablePublicSite", "YAMS") },
                                 { "adminPort" , Database.GetSetting("AdminListenPort", "YAMS") },
-                                { "publicPort" , Database.GetSetting("PublicListenPort", "YAMS") },
                                 { "currentIP" , Database.GetSetting("YAMSListenIP", "YAMS") },
                                 { "IPs" , JsonConvert.SerializeObject(listIPs, Formatting.None) }
                             };
@@ -321,33 +278,15 @@ namespace YAMS.Web
 
                             Database.SaveSetting("EnablePortForwarding", param["portForwarding"]);
                             Database.SaveSetting("EnableOpenFirewall", param["openFirewall"]);
-                            Database.SaveSetting("EnablePublicSite", param["publicEnable"]);
+                            //Database.SaveSetting("EnablePublicSite", param["publicEnable"]);
                             Database.SaveSetting("AdminListenPort", param["adminPort"]);
-                            Database.SaveSetting("PublicListenPort", param["publicPort"]);
+                            //Database.SaveSetting("PublicListenPort", param["publicPort"]);
                             Database.SaveSetting("YAMSListenIP", param["listenIp"]);
 
                             Database.AddLog("Network settings have been saved, to apply changes a service restart is required. Please check they are correct before restarting", "web", "warn");
                             break;
                         case "logout":
                             WebSession.Current.UserName = "";
-                            break;
-                        case "newserver":
-                            var NewServer = new List<KeyValuePair<string, string>>();
-                            NewServer.Add(new KeyValuePair<string, string>("motd", "Welcome to a YAMS server!"));
-                            NewServer.Add(new KeyValuePair<string, string>("server-ip", Networking.GetListenIP().ToString()));
-                            NewServer.Add(new KeyValuePair<string, string>("server-name", param["name"]));
-                            NewServer.Add(new KeyValuePair<string, string>("server-port", Networking.TcpPort.FindNextAvailablePort(25565).ToString()));
-                            Database.NewServerWeb(NewServer, param["name"], 1024);
-                            strResponse = "done";
-                            break;
-                        case "updateDNS":
-                            Database.SaveSetting("DNSName", param["dns-name"]);
-                            Database.SaveSetting("DNSSecret", param["dns-secret"]);
-                            Database.SaveSetting("LastExternalIP", param["dns-external"]);
-                            strResponse = "done";
-                            break;
-                        case "getDNS":
-                            strResponse = "{ \"name\":\"" + Database.GetSetting("DNSName", "YAMS") + "\", \"secret\": \"" + Database.GetSetting("DNSSecret", "YAMS") + "\", \"external\" : \"" + Networking.GetExternalIP().ToString() + "\" }";
                             break;
                         default:
                             return ProcessingResult.Abort;
