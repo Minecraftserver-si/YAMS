@@ -23,26 +23,15 @@ namespace YAMS
     public static class WebServer
     {
         private static Server adminServer;
-        private static Server publicServer;
 
         private static Thread adminServerThread;
-        private static Thread publicServerThread;
 
         private static int AdminTryCount = 0;
         private static int PublicTryCount = 0;
 
         //Control
         public static void Init()
-        {
-            //See if there is a new version of the web files waiting before we start the server
-            if (File.Exists(Core.RootFolder + @"\web.zip"))
-            {
-                if (Directory.Exists(Core.RootFolder + @"\web\")) Directory.Delete(Core.RootFolder + @"\web\", true);
-                Directory.CreateDirectory(YAMS.Core.RootFolder + @"\web\");
-                AutoUpdate.ExtractZip(YAMS.Core.RootFolder + @"\web.zip", YAMS.Core.RootFolder + @"\web\");
-                File.Delete(Core.RootFolder + @"\web.zip");
-            }
-            
+        {            
             adminServer = new Server();
 
             //Handle the requests for static files
@@ -58,15 +47,10 @@ namespace YAMS
             adminServerThread.Start();
 
             //Open firewall ports
-            /*if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true")
+            if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true")
             {
                 Networking.OpenFirewallPort(Convert.ToInt32(YAMS.Database.GetSetting("AdminListenPort", "YAMS")), "Admin website");
             }
-
-            if (Database.GetSetting("EnablePortForwarding", "YAMS") == "true")
-            {
-                Networking.OpenUPnP(Convert.ToInt32(YAMS.Database.GetSetting("AdminListenPort", "YAMS")), "Admin website", YAMS.Database.GetSetting("YAMSListenIP", "YAMS"));
-            }*/
         }
 
         static void myServer_ErrorPageRequested(object sender, ErrorPageEventArgs e)
@@ -105,33 +89,6 @@ namespace YAMS
             
         }
 
-        public static void StartPublic()
-        {
-            try
-            {
-                while (Util.PortIsBusy(Convert.ToInt32(YAMS.Database.GetSetting("PublicListenPort", "YAMS"))) && PublicTryCount < 120)
-                {
-                    PublicTryCount++;
-                    Database.AddLog("Public Web server port still in use, attempt " + PublicTryCount, "web", "warn");
-                    Thread.Sleep(5000);
-                }
-                publicServer.Start(5);
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                //Previous service has not released the port, so hang on and try again.
-                Database.AddLog("Public Web server port still in use, attempt " + PublicTryCount + ": " + e.Message, "web", "warn");
-            }
-            catch (Exception e)
-            {
-                EventLog myLog = new EventLog();
-                myLog.Source = "YAMS";
-                myLog.WriteEntry("Exception: " + e.Data, EventLogEntryType.Error);
-            }
-
-       
-        }
-
 
         public static void Stop()
         {
@@ -148,7 +105,6 @@ namespace YAMS
             }
             
             adminServerThread.Abort();
-            if (publicServerThread != null) publicServerThread.Abort();
         }
 
     }

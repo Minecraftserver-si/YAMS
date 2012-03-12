@@ -138,9 +138,6 @@ namespace YAMS
         //Initial Set-up for first run only
         public static void FirstRun()
         {
-            //Grab latest server jar
-            YAMS.AutoUpdate.UpdateIfNeeded(YAMS.AutoUpdate.strMCServerURL, YAMS.Core.RootFolder + @"\lib\minecraft_server.jar.UPDATE");
-
             //Set our MC Defaults in the DB
             var NewServer = new List<KeyValuePair<string, string>>();
             NewServer.Add(new KeyValuePair<string, string>("admin-slot", "true"));

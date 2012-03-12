@@ -94,20 +94,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddOns\App.cs" />
-    <Compile Include="AddOns\BiomeExtractor.cs" />
-    <Compile Include="AddOns\c10t.cs" />
-    <Compile Include="AddOns\NBToolkit.cs" />
-    <Compile Include="AddOns\Overviewer.cs" />
-    <Compile Include="AddOns\Tectonicus.cs" />
-    <Compile Include="Functions\AutoUpdate.cs" />
     <Compile Include="Core.cs" />
-    <Compile Include="Functions\Backup.cs" />
-    <Compile Include="Functions\JobEngine.cs" />
     <Compile Include="Functions\Networking.cs" />
     <Compile Include="Objects\IniParser.cs" />
     <Compile Include="Web\AdminAPI.cs" />
-    <Compile Include="Web\PublicAPI.cs" />
     <Compile Include="Web\WebTemplate.cs" />
     <Compile Include="Objects\Client.cs" />
     <Compile Include="Functions\Database.cs" />
@@ -145,7 +135,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.TimeStamp" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.TimeStamp" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

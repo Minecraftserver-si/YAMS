@@ -73,69 +73,11 @@ namespace YAMS.Web
                                             "\"vm\" : " + s.GetVMemory() + "," +
                                             "\"restartneeded\" : \"" + s.RestartNeeded + "\"," +
                                             "\"restartwhenfree\" : \"" + s.RestartWhenFree + "\"," +
-                                            "\"gamemode\" : \"" + s.GameMode + "\"," +
-                                            "\"players\" : [";
-                            if (s.Players.Count > 0)
-                            {
-                                foreach (KeyValuePair<string, Objects.Player> kvp in s.Players)
-                                {
-                                    Vector playerPos = kvp.Value.Position;
-                                    strResponse += " { \"name\": \"" + kvp.Value.Username + "\", " +
-                                                      "\"level\": \"" + kvp.Value.Level + "\", " +
-                                                      "\"x\": \"" + playerPos.x.ToString("0.##") + "\", " +
-                                                      "\"y\": \"" + playerPos.y.ToString("0.##") + "\", " +
-                                                      "\"z\": \"" + playerPos.z.ToString("0.##") + "\" },";
-                                };
-                                strResponse = strResponse.Remove(strResponse.Length - 1);
-                            }
-                            strResponse += "]}";
+                                            "\"gamemode\" : \"" + s.GameMode + "\"}";
                             break;
                         case "get-players":
                             DataSet dsPlayers = Database.GetPlayers(Convert.ToInt32(context.Request.Parameters["serverid"]));
                             JsonConvert.SerializeObject(dsPlayers, Formatting.Indented);
-                            break;
-                        case "overviewer":
-                            //Maps a server
-                            s = Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])];
-                            string strRenderModes = "";
-                            if (param["normal"] == "true") strRenderModes += "normal";
-                            if (param["lighting"] == "true")
-                            {
-                                if (strRenderModes != "") strRenderModes += ",";
-                                strRenderModes += "lighting";
-                            }
-                            if (param["night"] == "true")
-                            {
-                                if (strRenderModes != "") strRenderModes += ",";
-                                strRenderModes += "night";
-                            }
-                            if (param["spawn"] == "true")
-                            {
-                                if (strRenderModes != "") strRenderModes += ",";
-                                strRenderModes += "spawn";
-                            }
-                            if (param["cave"] == "true")
-                            {
-                                if (strRenderModes != "") strRenderModes += ",";
-                                strRenderModes += "cave";
-                            }
-                            AddOns.Overviewer over = new AddOns.Overviewer(s, "rendermodes=" + strRenderModes);
-                            over.Start();
-                            strResponse = "{ \"result\" : \"sent\" }";
-                            break;
-                        case "c10t":
-                            //Images a server
-                            s = Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])];
-                            AddOns.c10t c10t = new AddOns.c10t(s, "night=" + param["night"] + "&mode=" + param["mode"]);
-                            c10t.Start();
-                            strResponse = "{ \"result\" : \"sent\" }";
-                            break;
-                        case "tectonicus":
-                            //Maps a server
-                            s = Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])];
-                            AddOns.Tectonicus tecton = new AddOns.Tectonicus(s, "lighting=" + param["lighting"] + "&night=" + param["night"] + "&delete=" + param["delete"]);
-                            tecton.Start();
-                            strResponse = "{ \"result\" : \"sent\" }";
                             break;
                         case "start":
                             //Starts a server
@@ -343,9 +285,6 @@ namespace YAMS.Web
                             Database.SaveSetting("BukkitInstalled", param["bukkit"]);
                             strResponse = "done";
                             break;
-                        case "force-autoupdate":
-                            AutoUpdate.CheckUpdates();
-                            break;
                         case "network-settings":
                             List<string> listIPs = new List<string>();
                             IPHostEntry ipListen = Dns.GetHostEntry("");
@@ -424,10 +363,6 @@ namespace YAMS.Web
                             break;
                         case "getDNS":
                             strResponse = "{ \"name\":\"" + Database.GetSetting("DNSName", "YAMS") + "\", \"secret\": \"" + Database.GetSetting("DNSSecret", "YAMS") + "\", \"external\" : \"" + Networking.GetExternalIP().ToString() + "\" }";
-                            break;
-                        case "backup-now":
-                            Backup.BackupNow(Core.Servers[Convert.ToInt32(param["serverid"])], param["title"]);
-                            strResponse = "{ \"result\" : \"sent\" }";
                             break;
                         default:
                             return ProcessingResult.Abort;

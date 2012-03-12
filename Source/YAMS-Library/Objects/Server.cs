@@ -32,8 +32,6 @@ namespace YAMS
 
         public string ServerType = "vanilla";
 
-        private AddOns.Overviewer gmap;
-
         public Process prcMinecraft;
 
         private int intRestartSeconds = 0;
@@ -195,7 +193,6 @@ namespace YAMS
 
                 //Try and open the firewall port
                 if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true") Networking.OpenFirewallPort(this.Port, this.ServerTitle);
-                if (Database.GetSetting("EnablePortForwarding", "YAMS") == "true") Networking.OpenUPnP(this.Port, this.ServerTitle, this.ListenIP);
 
                 //Save the process ID so we can kill if there is a crash
                 this.PID = this.prcMinecraft.Id;
@@ -366,9 +363,7 @@ namespace YAMS
             if (strMessage.IndexOf("Invalid or corrupt jarfile ") > -1)
             {
                 //We have downloaded a corrupt jar, clear the download cache and force a re-download now
-                this.SafeStop = true;
-                AutoUpdate.CheckUpdates(true);
-                this.Start();
+                this.SafeStop = true;                
             }
 
             Database.AddLog(datTimeStamp, strMessage, "server", strLevel, false, this.ServerID);
@@ -382,7 +377,6 @@ namespace YAMS
             Util.RemovePID(this.PID);
             //Close firewall
             if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true") Networking.CloseFirewallPort(this.Port);
-            if (Database.GetSetting("EnablePortForwarding", "YAMS") == "true") Networking.CloseUPnP(this.Port);
 
             //Server has stopped, so clear out any entries in the user list
             this.Players.Clear();
@@ -436,13 +430,6 @@ namespace YAMS
             } else { return 0; }
         }
 
-        //Call to create a google map of the world using Overviewer
-        public void MapWorld()
-        {
-            this.gmap = new AddOns.Overviewer(this);
-            this.gmap.Start();
-        }
-
         /// <summary>
         /// Wipes the world for this server and optionally resets the seed in the server.properties
         /// </summary>
@@ -452,10 +439,17 @@ namespace YAMS
             bool bolWasRunning = false;
             if (this.Running)
             {
+                this.Send("backup");
                 bolWasRunning = true;
                 this.Stop();
             }
-            Backup.BackupNow(this);
+            else
+            {
+                Database.AddLog(DateTime.Now, "Start server and try again", "server", "info", false, this.ServerID);
+                return;
+            }
+            //Backup.BackupNow(this);
+            
 
             Directory.Delete(this.ServerDirectory + "\\world", true);
             Database.AddLog(DateTime.Now, "World Deleted", "server", "info", false, this.ServerID);

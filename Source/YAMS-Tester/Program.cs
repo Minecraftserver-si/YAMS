@@ -37,9 +37,6 @@ namespace YAMS_Gui
                 Core.Servers.Add(Convert.ToInt32(readerServers["ServerID"]), myServer);
             }
 
-            //Start job engine
-            JobEngine.Init();
-
             //Start Webserver
             WebServer.Init();
         

@@ -45,15 +45,6 @@ namespace YAMS
             //Is this the first run?
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
 
-            Database.AddLog("AutoUpdate setup", "service", "debug");
-
-            //Fill up some vars
-            AutoUpdate.bolUpdateAddons = Convert.ToBoolean(Database.GetSetting("UpdateAddons", "YAMS"));
-            //AutoUpdate.bolUpdateGUI = Convert.ToBoolean(Database.GetSetting("UpdateGUI", "YAMS"));
-            AutoUpdate.bolUpdateJAR = Convert.ToBoolean(Database.GetSetting("UpdateJAR", "YAMS"));
-            //AutoUpdate.bolUpdateSVC = Convert.ToBoolean(Database.GetSetting("UpdateSVC", "YAMS"));
-            AutoUpdate.bolUpdateWeb = Convert.ToBoolean(Database.GetSetting("UpdateWeb", "YAMS"));
-            //Disable autoupdate !!
             StoragePath = Database.GetSetting("StoragePath", "YAMS");//?
 
             Database.AddLog("Deleting and killing PIDs", "service", "debug");
@@ -91,12 +82,8 @@ namespace YAMS
                     Database.AddLog("Unable to delete the pids.txt file: " + e.Message);
                 }
             };
-            Database.AddLog("Check for update!", "service", "debug");
-            //Check for updates
-            AutoUpdate.CheckUpdates();
 
             //Load any servers
-            Database.AddLog("Load servers", "service", "debug");
             MySqlDataReader readerServers = Database.GetServers();
             ArrayList ServerIDs = new ArrayList();
             while (readerServers.Read())
@@ -113,11 +100,6 @@ namespace YAMS
                 MCServer myServer = new MCServer(ServerID);
                 Servers.Add(ServerID, myServer);
             }
-
-            Database.AddLog("Starting JobEngine", "service", "debug");
-            //Start job engine
-            JobEngine.Init();
-            Database.AddLog("Starting WebServer", "service", "debug");
             //Start Webserver
             WebServer.Init();
         }

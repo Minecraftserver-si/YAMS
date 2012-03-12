@@ -56,12 +56,12 @@ namespace YAMS_Updater
             //Grab latest web app
             WorkingForm.lblCurrentItem.Text = "Downloading web app";
             WorkingForm.Refresh();
-            AutoUpdate.UpdateIfNeeded(AutoUpdate.strYAMSUpdatePath["live"] + @"\web.zip", Core.RootFolder + @"\web.zip");
+            //AutoUpdate.UpdateIfNeeded(AutoUpdate.strYAMSUpdatePath["live"] + @"\web.zip", Core.RootFolder + @"\web.zip");
 
             //Grab latest server jar
             WorkingForm.lblCurrentItem.Text = "Downloading latest Minecraft Server";
             WorkingForm.Refresh();
-            AutoUpdate.UpdateIfNeeded(AutoUpdate.strMCServerURL, Core.RootFolder + @"\lib\minecraft_server.jar.UPDATE");
+            //AutoUpdate.UpdateIfNeeded(AutoUpdate.strMCServerURL, Core.RootFolder + @"\lib\minecraft_server.jar.UPDATE");
 
             //Set our MC Defaults in the DB
             WorkingForm.lblCurrentItem.Text = "Creating your server";
