@@ -35,7 +35,7 @@ namespace YAMS.Web
                 //must be authenticated
 
                 //what is the action?
-                if (context.Request.Method == Method.Post && (WebSession.Current.UserName == "admin" || context.Request.Parameters["PSK"] == Database.GetSetting("PSK", "YAMS")))
+                if ((WebSession.Current.UserName == "admin" || context.Request.Parameters["PSK"] == Database.GetSetting("PSK", "YAMS")))
                 {
                     String strResponse = "";
                     IParameterCollection param = context.Request.Parameters;
@@ -327,21 +327,6 @@ namespace YAMS.Web
                             Database.SaveSetting("YAMSListenIP", param["listenIp"]);
 
                             Database.AddLog("Network settings have been saved, to apply changes a service restart is required. Please check they are correct before restarting", "web", "warn");
-                            break;
-                        case "job-list":
-                            DataSet rdJobs = Database.ListJobs();
-                            strResponse = JsonConvert.SerializeObject(rdJobs, Formatting.Indented);
-                            break;
-                        case "delete-job":
-                            string strJobID = param["jobid"];
-                            Database.DeleteJob(strJobID);
-                            strResponse = "done";
-                            break;
-                        case "add-job":
-                            intServerID = Convert.ToInt32(param["job-server"]);
-                            int intHour = Convert.ToInt32(param["job-hour"]);
-                            int intMinute = Convert.ToInt32(param["job-minute"]);
-                            Database.AddJob(param["job-type"], intHour, intMinute, param["job-params"], intServerID);
                             break;
                         case "logout":
                             WebSession.Current.UserName = "";

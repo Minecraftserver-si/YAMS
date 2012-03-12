@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -28,13 +29,22 @@ namespace YAMS_Gui
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
             Database.SaveSetting("AdminPassword", "password");
 
-            MySqlDataReader readerServers = YAMS.Database.GetServers();
+            Database.AddLog("Reading minecraft servers!", "app", "debug");
+            MySqlDataReader readerServers = Database.GetServers();
+            ArrayList ServerIDs = new ArrayList();
             while (readerServers.Read())
             {
-                Database.AddLog("Starting Server " + readerServers["ServerID"]);
-                MCServer myServer = new MCServer(Convert.ToInt32(readerServers["ServerID"]));
-                if (Convert.ToBoolean(readerServers["ServerAutostart"])) myServer.Start();
-                Core.Servers.Add(Convert.ToInt32(readerServers["ServerID"]), myServer);
+                int ServerID = Convert.ToInt32(readerServers.GetString("ServerID"));
+                ServerIDs.Add(ServerID);
+            }
+            readerServers.Close();
+
+            System.Collections.IEnumerator enu = ServerIDs.GetEnumerator();
+            while (enu.MoveNext())
+            {
+                int ServerID = Convert.ToInt32(enu.Current);
+                MCServer myServer = new MCServer(ServerID);
+                Core.Servers.Add(ServerID, myServer);
             }
 
             //Start Webserver

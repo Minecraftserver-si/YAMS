@@ -45,9 +45,9 @@ namespace YAMS
             //Is this the first run?
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
 
-            StoragePath = Database.GetSetting("StoragePath", "YAMS");//?
+            StoragePath = Database.GetSetting("StoragePath", "YAMS");
 
-            Database.AddLog("Deleting and killing PIDs", "service", "debug");
+            Database.AddLog("Deleting and killing PIDs", "app", "debug");
             //Are there any PIDs we previously started still running?
             if (File.Exists(Core.RootFolder + "\\pids.txt"))
             {
@@ -84,6 +84,7 @@ namespace YAMS
             };
 
             //Load any servers
+            Database.AddLog("Reading minecraft servers!", "app", "debug");
             MySqlDataReader readerServers = Database.GetServers();
             ArrayList ServerIDs = new ArrayList();
             while (readerServers.Read())
@@ -100,6 +101,7 @@ namespace YAMS
                 MCServer myServer = new MCServer(ServerID);
                 Servers.Add(ServerID, myServer);
             }
+            Database.AddLog("Starting web server!", "app", "debug");
             //Start Webserver
             WebServer.Init();
         }

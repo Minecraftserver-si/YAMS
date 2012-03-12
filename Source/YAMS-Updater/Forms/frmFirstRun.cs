@@ -89,13 +89,9 @@ namespace YAMS_Updater
             //Set our YAMS Defaults
             WorkingForm.lblCurrentItem.Text = "Configuring YAMS";
             WorkingForm.Refresh();
-            Database.SaveSetting("UpdateJAR", Util.BooleanToString(this.chkUpdateJar.Checked));
-            Database.SaveSetting("UpdateSVC", Util.BooleanToString(this.chkUpdateYAMS.Checked));
-            Database.SaveSetting("UpdateGUI", Util.BooleanToString(this.chkUpdateYAMS.Checked));
-            Database.SaveSetting("UpdateWeb", Util.BooleanToString(this.chkUpdateYAMS.Checked));
-            Database.SaveSetting("UpdateAddons", Util.BooleanToString(this.chkUpdateAddons.Checked));
-            Database.SaveSetting("RestartOnJarUpdate", Util.BooleanToString(this.chkRestartMC.Checked));
-            Database.SaveSetting("RestartOnSVCUpdate", Util.BooleanToString(this.chkRestartYAMS.Checked));
+
+            Database.SaveSetting("PSK", Util.MD5(txtAdminPassword.Text));
+            Database.SaveSetting("StoragePath", Core.StoragePath);
             Database.SaveSetting("EnableJavaOptimisations", "true");
             Database.SaveSetting("AdminListenPort", "56552"); //Use an IANA legal internal port 49152 - 65535
             Database.SaveSetting("PublicListenPort", Convert.ToString(Networking.TcpPort.FindNextAvailablePort(80))); //Find nearest open port to 80 for public site

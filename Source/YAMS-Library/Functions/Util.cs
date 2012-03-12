@@ -159,14 +159,8 @@ namespace YAMS
             Database.NewServer(NewServer, "My First YAMS Server");
 
             //Set our YAMS Defaults
+            
             Database.SaveSetting("StoragePath", Core.StoragePath);
-            Database.SaveSetting("UpdateJAR", "true");
-            Database.SaveSetting("UpdateSVC", "true");
-            Database.SaveSetting("UpdateGUI", "true");
-            Database.SaveSetting("UpdateWeb", "true");
-            Database.SaveSetting("UpdateAddons", "true");
-            Database.SaveSetting("RestartOnJarUpdate", "true");
-            Database.SaveSetting("RestartOnSVCUpdate", "true");
             Database.SaveSetting("Memory", "1024");
             Database.SaveSetting("EnableJavaOptimisations", "true");
             Database.SaveSetting("AdminListenPort", "56552"); //Use an IANA legal internal port 49152 - 65535
@@ -234,53 +228,6 @@ namespace YAMS
                     target.CreateSubdirectory(diSourceSubDir.Name);
                 CopyAll(diSourceSubDir, nextTargetSubDir);
             }
-        }
-
-        public static void PhoneHome()
-        {
-            string datCheck = DateTime.Now.ToString("dd-MM-yyyy");
-            if (Database.GetSetting("LastPhoneHome", "YAMS") != datCheck)
-            {
-                //Count online players
-                int intPlayers = 0;
-                foreach (KeyValuePair<int, MCServer> kvp in Core.Servers)
-                {
-                    intPlayers = intPlayers + Database.GetPlayerCount(kvp.Value.ServerID);
-                }
-
-                //Collect Data
-                string strVars = "servers=" + Core.Servers.Count +
-                                 "&players=" + intPlayers +
-                                 "&overviewer=" + Database.GetSetting("OverviewerInstalled", "YAMS") +
-                                 "&c10t=" + Database.GetSetting("C10tInstalled", "YAMS") +
-                                 "&tectonicus=" + Database.GetSetting("TectonicusInstalled", "YAMS") +
-                                 "&biomeextractor=" + Database.GetSetting("BiomeExtractorInstalled", "YAMS") +
-                                 "&nbtoolkit=" + Database.GetSetting("NBToolkitInstalled", "YAMS") +
-                                 "&bukkit=" + Database.GetSetting("BukkitInstalled", "YAMS") +
-                                 "&updateapps=" + Database.GetSetting("UpdateAddons", "YAMS") +
-                                 "&updatejar=" + Database.GetSetting("UpdateJAR", "YAMS") +
-                                 "&updategui=" + Database.GetSetting("UpdateGUI", "YAMS") +
-                                 "&updatesvc=" + Database.GetSetting("UpdateSVC", "YAMS") +
-                                 "&updateweb=" + Database.GetSetting("UpdateWeb", "YAMS");
-
-                //Send info
-                try
-                {
-                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.richardbenson.co.uk/yams/phonehome.php?" + strVars);
-                    request.Method = "GET";
-
-                    //Grab the response
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                    Database.AddLog("Phoned home with data: " + strVars);
-                    Database.SaveSetting("LastPhoneHome", datCheck);
-                }
-                catch (System.Net.WebException ex)
-                {
-                    Database.AddLog("Couldn't phone home: " + ex.Message);
-                }
-            }
-        
         }
 
         //Add a process id to our list
@@ -353,34 +300,6 @@ namespace YAMS
             else return false;
         }
 
-        /// <summary>
-        /// Updates the Dynamic yams.at DNS.
-        /// </summary>
-        public static void UpdateDNS()
-        {
-            string externalIP = Networking.GetExternalIP().ToString();
-            if (externalIP != Database.GetSetting("LastExternalIP", "YAMS"))
-            {
-                //IP has changed since last time we checked so update the DNS
-                string strVars = "action=update&domain=" + Database.GetSetting("DNSName", "YAMS") + "&secret=" + Database.GetSetting("DNSSecret", "YAMS") + "&ip=" + externalIP;
-                try
-                {
-                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.richardbenson.co.uk/yams/dns/?" + strVars);
-                    request.Method = "GET";
-
-                    //Grab the response
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                    Database.AddLog("Updated Dynamic DNS");
-                    Database.SaveSetting("LastExternalIP", externalIP);
-                }
-                catch (System.Net.WebException ex)
-                {
-                    Database.AddLog("Couldn't update DNS: " + ex.Message);
-                }
-            }
-        }
-
         //Emulates VBScript's Left http://www.mgbrown.com/PermaLink68.aspx
         public static string Left(string text, int length)
         {
@@ -392,6 +311,18 @@ namespace YAMS
                 return text;
             else
                 return text.Substring(0, length);
+        }
+
+        public static string MD5(string toHash){
+            System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
+            byte[] bs = System.Text.Encoding.UTF8.GetBytes(toHash);
+            bs = x.ComputeHash(bs);
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+            foreach (byte b in bs)
+            {
+                s.Append(b.ToString("x2").ToLower());
+            }
+            return s.ToString();
         }
     }
 }

@@ -186,7 +186,6 @@ namespace YAMS
             {
                 sb.Append(readerProperties["SettingName"].ToString() + "=" + readerProperties["SettingValue"].ToString() + "\n");
             }
-
             //Save it as our update file in case the current is in use
             string strFile = @"\server.properties";
             if (File.Exists(Core.StoragePath + intServerID.ToString() + strFile)) strFile = @"\server.properties.UPDATE";
@@ -430,8 +429,6 @@ namespace YAMS
                     Database.SaveSetting("EnablePortForwarding", "true");
                     Database.SaveSetting("EnableOpenFirewall", "true");
                     Database.SaveSetting("YAMSListenIP", Networking.GetListenIP().ToString());
-                    AddJob("update", -1, 0, "", 0);
-                    AddJob("backup", -1, 30, "", 1);
                     Database.SaveSetting("DBSchema", "4");
                     goto case 4;
                     //goto case 3; //etc
@@ -515,50 +512,6 @@ namespace YAMS
             MySqlDataAdapter adapter = new MySqlDataAdapter(comPlayers);
             adapter.Fill(ds);
             return ds;
-        }
-
-        //Job Engine
-        public static MySqlDataReader GetJobs(int intHour, int intMinute)
-        {
-            MySqlCommand cmd = new MySqlCommand("SELECT * FROM Jobs WHERE (JobHour = -1 AND JobMinute = @minute) OR (JobHour = @hour AND JobMinute = @minute)", conn);
-            cmd.Parameters.Add("@minute", intMinute);
-            cmd.Parameters.Add("@hour", intHour);
-            MySqlDataReader readerJobs = null;
-            readerJobs = cmd.ExecuteReader();
-            return readerJobs;
-        }
-
-        public static bool AddJob(string strAction, int intHour, int intMinute, string strParams, int intServerID)
-        {
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.Connection = conn;
-            cmd.CommandText = "INSERT INTO Jobs (JobAction, JobHour, JobMinute, JobParams, JobServer) VALUES (@action, @hour, @minute, @params, @server);";
-            cmd.Parameters.Add("@action", strAction);
-            cmd.Parameters.Add("@hour", intHour);
-            cmd.Parameters.Add("@minute", intMinute);
-            cmd.Parameters.Add("@params", strParams);
-            cmd.Parameters.Add("@server", intServerID);
-            cmd.ExecuteNonQuery();
-            return true;
-        }
-
-        public static DataSet ListJobs()
-        {
-            DataSet ds = new DataSet();
-            MySqlCommand cmd = new MySqlCommand("SELECT Jobs.*, MCServers.ServerTitle FROM Jobs LEFT JOIN MCServers ON Jobs.JobServer = MCServers.ServerID", conn);
-            MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
-            adapter.Fill(ds);
-            return ds;
-        }
-
-        public static void DeleteJob(string strJobID)
-        {
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.Connection = conn;
-            cmd.CommandText = "DELETE FROM Jobs WHERE JobID = @jobid;";
-            cmd.Parameters.Add("@jobid", Convert.ToInt32(strJobID));
-
-            cmd.ExecuteNonQuery();
         }
 
         public static void ClearLogs(string strPeriod, int intAmount)
