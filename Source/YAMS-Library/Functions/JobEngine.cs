@@ -23,6 +23,7 @@ namespace YAMS
 
         public static void Tick(object t)
         {
+            return;//DISABLE JOB ENGINE!
             DateTime datNow = DateTime.Now;
             int intMinutes = datNow.Minute;
             int intHour = datNow.Hour;
@@ -110,8 +111,8 @@ namespace YAMS
                 } catch (Exception e) {
                     YAMS.Database.AddLog("Error running job: " + e.Message, "job", "error");
                 }
-            } 
-        
+            }
+            rdJobs.Close();
         }
     }
 }

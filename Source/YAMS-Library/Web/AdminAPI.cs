@@ -35,7 +35,7 @@ namespace YAMS.Web
                 //must be authenticated
 
                 //what is the action?
-                if (context.Request.Method == Method.Post && WebSession.Current.UserName == "admin")
+                if (context.Request.Method == Method.Post && (WebSession.Current.UserName == "admin" || context.Request.Parameters["PSK"] == Database.GetSetting("PSK", "YAMS")))
                 {
                     String strResponse = "";
                     IParameterCollection param = context.Request.Parameters;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,15 +45,18 @@ namespace YAMS
             //Is this the first run?
             if (Database.GetSetting("FirstRun", "YAMS") != "true") YAMS.Util.FirstRun();
 
-            //Fill up some vars
-            /*AutoUpdate.bolUpdateAddons = Convert.ToBoolean(Database.GetSetting("UpdateAddons", "YAMS"));
-            AutoUpdate.bolUpdateGUI = Convert.ToBoolean(Database.GetSetting("UpdateGUI", "YAMS"));
-            AutoUpdate.bolUpdateJAR = Convert.ToBoolean(Database.GetSetting("UpdateJAR", "YAMS"));
-            AutoUpdate.bolUpdateSVC = Convert.ToBoolean(Database.GetSetting("UpdateSVC", "YAMS"));
-            AutoUpdate.bolUpdateWeb = Convert.ToBoolean(Database.GetSetting("UpdateWeb", "YAMS"));*/
-            //Disable autoupdate !!
-            StoragePath = Database.GetSetting("StoragePath", "YAMS");
+            Database.AddLog("AutoUpdate setup", "service", "debug");
 
+            //Fill up some vars
+            AutoUpdate.bolUpdateAddons = Convert.ToBoolean(Database.GetSetting("UpdateAddons", "YAMS"));
+            //AutoUpdate.bolUpdateGUI = Convert.ToBoolean(Database.GetSetting("UpdateGUI", "YAMS"));
+            AutoUpdate.bolUpdateJAR = Convert.ToBoolean(Database.GetSetting("UpdateJAR", "YAMS"));
+            //AutoUpdate.bolUpdateSVC = Convert.ToBoolean(Database.GetSetting("UpdateSVC", "YAMS"));
+            AutoUpdate.bolUpdateWeb = Convert.ToBoolean(Database.GetSetting("UpdateWeb", "YAMS"));
+            //Disable autoupdate !!
+            StoragePath = Database.GetSetting("StoragePath", "YAMS");//?
+
+            Database.AddLog("Deleting and killing PIDs", "service", "debug");
             //Are there any PIDs we previously started still running?
             if (File.Exists(Core.RootFolder + "\\pids.txt"))
             {
@@ -87,23 +91,33 @@ namespace YAMS
                     Database.AddLog("Unable to delete the pids.txt file: " + e.Message);
                 }
             };
-
+            Database.AddLog("Check for update!", "service", "debug");
             //Check for updates
-            //AutoUpdate.CheckUpdates();
+            AutoUpdate.CheckUpdates();
 
             //Load any servers
-            MySqlDataReader readerServers = YAMS.Database.GetServers();
+            Database.AddLog("Load servers", "service", "debug");
+            MySqlDataReader readerServers = Database.GetServers();
+            ArrayList ServerIDs = new ArrayList();
             while (readerServers.Read())
             {
-                Database.AddLog("Starting Server " + readerServers["ServerID"]);
-                MCServer myServer = new MCServer(Convert.ToInt32(readerServers["ServerID"]));
-                if (Convert.ToBoolean(readerServers["ServerAutostart"])) myServer.Start();
-                Servers.Add(Convert.ToInt32(readerServers["ServerID"]), myServer);
+                int ServerID = Convert.ToInt32(readerServers.GetString("ServerID"));
+                ServerIDs.Add(ServerID);
+            }
+            readerServers.Close();
+
+            System.Collections.IEnumerator enu = ServerIDs.GetEnumerator();
+            while (enu.MoveNext())
+            {
+                int ServerID = Convert.ToInt32(enu.Current);
+                MCServer myServer = new MCServer(ServerID);
+                Servers.Add(ServerID, myServer);
             }
 
+            Database.AddLog("Starting JobEngine", "service", "debug");
             //Start job engine
             JobEngine.Init();
-
+            Database.AddLog("Starting WebServer", "service", "debug");
             //Start Webserver
             WebServer.Init();
         }

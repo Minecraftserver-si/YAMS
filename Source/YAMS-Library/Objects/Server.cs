@@ -63,47 +63,24 @@ namespace YAMS
             this.ServerID = intServerID;
 
             //Set this first so that we can use it right away
-            this.ServerDirectory = Core.StoragePath + this.ServerID.ToString() + @"\";
+            this.ServerDirectory = Core.StoragePath + @"\" + this.ServerID.ToString();
 
             //Set this here to catch any old references to it.
             this.strWorkingDir = this.ServerDirectory;
 
-            this.bolEnableJavaOptimisations = Convert.ToBoolean(Database.GetSetting(this.ServerID, "ServerEnableOptimisations"));
+            this.bolEnableJavaOptimisations = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerEnableOptimisations")) == 1;
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
             this.LogonMode = Convert.ToString(Database.GetSetting(this.ServerID, "ServerLogonMode"));
             this.ListenIP = this.GetProperty("server-ip");
             this.Port = Convert.ToInt32(this.GetProperty("server-port"));
-
-            //There is a bug in <0.3.2 that causes double worlds, detect and correct
-            if (this.GetProperty("level-name") == @"..\\world")
-            {
-                try
-                {
-                    this.SaveProperty("level-name", "world");
-                    //Backup the dupe world, just in case
-                    Backup.BackupNow(this, "_dupeworld");
-
-                    //Delete the world dir and replace with the duped one
-                    Directory.Move(this.ServerDirectory + @"\world\", this.ServerDirectory + @"\world_duped\");
-                    Directory.Move(Core.RootFolder + @"\servers\world\", this.ServerDirectory + @"\world\");
-
-                    //Backup again
-                    Backup.BackupNow(this, "_afterdedupe");
-
-                    YAMS.Database.AddLog("Your world needed a de-duplication, the folder world_duped can be deleted if everything seems ok now", "app", "warn");
-                }
-                catch (Exception e)
-                {
-                    YAMS.Database.AddLog("Your world needs a de-duplication, but it couldn't be done automatically. Please report this issue: " + e.Data, "app", "error");
-                }
-            }
-
+            
         }
 
         public string GetProperty(string strPropertyName)
         {
+            //File.WriteAllText(Core.RootFolder + @"\log.err", "Try to get property: " + strPropertyName + " from file: " + this.ServerDirectory + @"\server.properties");
             IniParser parser = new IniParser(this.ServerDirectory + @"\server.properties");
             return parser.GetSetting("ROOT", strPropertyName);
         }
@@ -123,7 +100,7 @@ namespace YAMS
         {
             if (this.Running) return;
             //Refresh Variables
-            this.bolEnableJavaOptimisations = Convert.ToBoolean(Database.GetSetting(this.ServerID, "ServerEnableOptimisations"));
+            this.bolEnableJavaOptimisations = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerEnableOptimisations")) == 1;
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
@@ -502,7 +479,7 @@ namespace YAMS
 
             try
             {
-                using (StreamReader r = new StreamReader(this.strWorkingDir + strFile))
+                using (StreamReader r = new StreamReader(this.strWorkingDir + @"\" + strFile))
                 {
                     string line;
                     while ((line = r.ReadLine()) != null)

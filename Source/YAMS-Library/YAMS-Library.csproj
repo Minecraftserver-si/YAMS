@@ -119,9 +119,6 @@
     <Compile Include="Objects\Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="dbYAMS.sdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -148,7 +145,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.TimeStamp" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.TimeStamp" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

@@ -23,10 +23,29 @@ namespace YAMS
 
         private static MySqlConnection GetConnection()
         {
-            string MyConString = "Server=192.168.8.203;PORT=3306;" +
+            String MyConString = "Server=192.168.8.203;PORT=3306;" +
                 "Database=yams;" +
                 "Uid=yams;" +
                 "Pwd=yams;";
+            if (File.Exists(Core.RootFolder + "/mysql.txt"))
+            {
+                StreamReader reader = new StreamReader(Core.RootFolder + "/mysql.txt");
+                MyConString = reader.ReadToEnd();
+            }
+            else
+            {
+                //File.Create(Core.RootFolder + "/mysql.txt");
+                try
+                {
+                    TextWriter w = new StreamWriter(Core.RootFolder + "/mysql.txt");
+                    w.WriteLine(MyConString);
+                    w.Close();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Can't write mysql.txt");
+                }
+            }
             MySqlConnection connection = new MySqlConnection(MyConString);
             return connection;
         }
@@ -42,13 +61,12 @@ namespace YAMS
             //Build our SQL
             StringBuilder strSQL = new StringBuilder();
             strSQL.Append("SELECT ");
-            if (intNumRows > 0) strSQL.Append("TOP(" + intNumRows.ToString() + ") ");
             strSQL.Append("* FROM Log ");
-            strSQL.Append("WHERE 1=1 ");
+            strSQL.Append("WHERE 1 ");
             if (intStartID > 0) strSQL.Append("AND LogID > " + intStartID.ToString() + " ");
             if (strLevels != "all") strSQL.Append("AND LogLevel = '" + strLevels + "' ");
             if (intServerID > -1) strSQL.Append("AND ServerID = " + intServerID.ToString() + " ");
-            strSQL.Append("ORDER BY LogDateTime DESC, LogID ASC");
+            strSQL.Append("ORDER BY LogDateTime DESC, LogID ASC LIMIT 0," + intNumRows);
 
             command.CommandText = strSQL.ToString();
             MySqlDataAdapter adapter = new MySqlDataAdapter(command);
@@ -438,9 +456,8 @@ namespace YAMS
 
         public static MySqlDataReader GetServers()
         {
-            MySqlCommand comServers = new MySqlCommand("SELECT * FROM MCServers", conn);
-            MySqlDataReader readerServers = null;
-            readerServers = comServers.ExecuteReader();
+            MySqlCommand comServers = new MySqlCommand("SELECT * FROM MCServers;", conn);
+            MySqlDataReader readerServers = comServers.ExecuteReader();
             return readerServers;
         }
 

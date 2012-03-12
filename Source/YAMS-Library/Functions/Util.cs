@@ -162,6 +162,7 @@ namespace YAMS
             Database.NewServer(NewServer, "My First YAMS Server");
 
             //Set our YAMS Defaults
+            Database.SaveSetting("StoragePath", Core.StoragePath);
             Database.SaveSetting("UpdateJAR", "true");
             Database.SaveSetting("UpdateSVC", "true");
             Database.SaveSetting("UpdateGUI", "true");
