@@ -17,16 +17,13 @@ namespace YAMS
         public double y;
         public double z;
     }
-    
+
     public static class Core
     {
         public static string RootFolder = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).DirectoryName;
         public static string StoragePath = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).DirectoryName + @"\servers\";
 
         public static Dictionary<int, MCServer> Servers = new Dictionary<int, MCServer> { };
-
-        private static Timer timUpdate;
-        private static Timer timBackup;
 
         public static void StartUp()
         {
@@ -66,7 +63,7 @@ namespace YAMS
                             Database.AddLog("Process " + line + " not killed: " + e.Message);
                         }
                     }
-                   
+
                     trPids.Close();
                 }
                 catch (Exception e)

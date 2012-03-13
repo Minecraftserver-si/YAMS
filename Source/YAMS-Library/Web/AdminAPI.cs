@@ -70,10 +70,7 @@ namespace YAMS.Web
                             strResponse = "{ \"serverid\" : " + s.ServerID + "," +
                                             "\"status\" : \"" + s.Running + "\"," +
                                             "\"ram\" : " + s.GetMemory() + "," +
-                                            "\"vm\" : " + s.GetVMemory() + "," +
-                                            "\"restartneeded\" : \"" + s.RestartNeeded + "\"," +
-                                            "\"restartwhenfree\" : \"" + s.RestartWhenFree + "\"," +
-                                            "\"gamemode\" : \"" + s.GameMode + "\"}";
+                                            "\"vm\" : " + s.GetVMemory() + "}";
                             break;
                         case "get-players":
                             DataSet dsPlayers = Database.GetPlayers(Convert.ToInt32(context.Request.Parameters["serverid"]));
@@ -97,10 +94,6 @@ namespace YAMS.Web
                         case "delayed-restart":
                             //Restarts a server after a specified time and warns players
                             Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].DelayedRestart(Convert.ToInt32(param["delay"]));
-                            strResponse = "{ \"result\" : \"sent\" }";
-                            break;
-                        case "restart-when-free":
-                            Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].RestartIfEmpty();
                             strResponse = "{ \"result\" : \"sent\" }";
                             break;
                         case "command":
@@ -151,13 +144,14 @@ namespace YAMS.Web
                         case "get-mc-settings":
                             //retrieve all server settings as JSON
                             intServerID = Convert.ToInt32(param["serverid"]);
-                            
+
                             json = File.ReadAllText(YAMS.Core.RootFolder + @"\lib\properties.json");
                             jProps = JObject.Parse(json);
 
                             strResponse = "";
-                            
-                            foreach(JObject option in jProps["options"]) {
+
+                            foreach (JObject option in jProps["options"])
+                            {
                                 strResponse += "<p><label for=\"" + (string)option["key"] + "\" title=\"" + (string)option["description"] + "\">" + (string)option["name"] + "</label>";
 
                                 string strValue = Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].GetProperty((string)option["key"]);
@@ -232,9 +226,6 @@ namespace YAMS.Web
                             {
                                 thisServer.SaveProperty((string)option["key"], param[(string)option["key"]]);
                             }
-
-                            if (thisServer.Running) thisServer.RestartIfEmpty();
-
                             break;
                         case "get-config-file":
                             List<string> listConfig = Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].ReadConfig(param["file"]);
@@ -259,7 +250,7 @@ namespace YAMS.Web
                                 { "currentIP" , Database.GetSetting("YAMSListenIP", "YAMS") },
                                 { "IPs" , JsonConvert.SerializeObject(listIPs, Formatting.None) }
                             };
-                            strResponse = JsonConvert.SerializeObject(dicNetwork, Formatting.Indented).Replace(@"\","").Replace("\"[", "[").Replace("]\"", "]");
+                            strResponse = JsonConvert.SerializeObject(dicNetwork, Formatting.Indented).Replace(@"\", "").Replace("\"[", "[").Replace("]\"", "]");
                             break;
                         case "save-network-settings":
                             int intTester = 0;
@@ -272,7 +263,7 @@ namespace YAMS.Web
                             }
                             catch (Exception e)
                             {
-                                YAMS.Database.AddLog("Invalid input on network settings", "web", "warn");
+                                YAMS.Database.AddLog("Invalid input on network settings: " + e.Message, "web", "warn");
                                 return ProcessingResult.Abort;
                             }
 
@@ -347,9 +338,10 @@ namespace YAMS.Web
                     return ProcessingResult.SendResponse;
                 }
             }
-            else if (context.Request.Uri.AbsoluteUri.Equals(@"/")) {
-                    context.Response.Redirect(@"/admin");
-                    return ProcessingResult.SendResponse;
+            else if (context.Request.Uri.AbsoluteUri.Equals(@"/"))
+            {
+                context.Response.Redirect(@"/admin");
+                return ProcessingResult.SendResponse;
             }
             else
             {

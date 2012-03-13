@@ -99,14 +99,11 @@
     <Compile Include="Objects\IniParser.cs" />
     <Compile Include="Web\AdminAPI.cs" />
     <Compile Include="Web\WebTemplate.cs" />
-    <Compile Include="Objects\Client.cs" />
     <Compile Include="Functions\Database.cs" />
-    <Compile Include="Objects\Player.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Objects\Server.cs" />
     <Compile Include="Functions\Util.cs" />
     <Compile Include="Web\WebServer.cs" />
-    <Compile Include="Objects\Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
