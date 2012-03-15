@@ -25,9 +25,6 @@ namespace YAMS
 
         public static Dictionary<int, MCServer> Servers = new Dictionary<int, MCServer> { };
 
-        private static Timer timUpdate;
-        private static Timer timBackup;
-
         public static void StartUp()
         {
             //Clear out old files if they exist, if it doesn't work we'll just do it on next startup.
