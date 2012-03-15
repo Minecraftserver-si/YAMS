@@ -72,10 +72,6 @@ namespace YAMS.Web
                                             "\"ram\" : " + s.GetMemory() + "," +
                                             "\"vm\" : " + s.GetVMemory() + "}";
                             break;
-                        case "get-players":
-                            DataSet dsPlayers = Database.GetPlayers(Convert.ToInt32(context.Request.Parameters["serverid"]));
-                            JsonConvert.SerializeObject(dsPlayers, Formatting.Indented);
-                            break;
                         case "start":
                             //Starts a server
                             Core.Servers[Convert.ToInt32(context.Request.Parameters["serverid"])].Start();

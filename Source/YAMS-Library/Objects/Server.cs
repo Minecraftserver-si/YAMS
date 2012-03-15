@@ -60,7 +60,7 @@ namespace YAMS
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
-            //this.LogonMode = Convert.ToString(Database.GetSetting(this.ServerID, "ServerLogonMode"));
+
             this.ListenIP = this.GetProperty("server-ip");
             this.Port = Convert.ToInt32(this.GetProperty("server-port"));
 
@@ -92,8 +92,6 @@ namespace YAMS
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
-            //this.RestartWhenFree = false;
-            //this.RestartNeeded = false;
 
             //What type of server are we running?
             string strFile = "";
@@ -117,7 +115,7 @@ namespace YAMS
             if (!Util.ReplaceFile(Core.RootFolder + "\\lib\\" + strFile, Core.RootFolder + "\\lib\\" + strFile + ".UPDATE")) return;
 
             //Also check if a new properties file is to be applied
-            if (!Util.ReplaceFile(this.strWorkingDir + "server.properties", this.strWorkingDir + "server.properties.UPDATE")) return;
+            if (!Util.ReplaceFile(this.strWorkingDir + @"\server.properties", this.strWorkingDir + @"\server.properties.UPDATE")) return;
 
             this.prcMinecraft = new Process();
 
