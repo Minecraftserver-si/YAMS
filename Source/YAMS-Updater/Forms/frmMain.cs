@@ -37,7 +37,8 @@ namespace YAMS_Updater
             RefreshAddresses();
 
             //Set current update branch
-            switch (YAMS.Database.GetSetting("UpdateBranch", "YAMS")) {
+            switch (YAMS.Database.GetSetting("UpdateBranch", "YAMS"))
+            {
                 case "live":
                     selUpdateBranch.SelectedIndex = 0;
                     break;
@@ -75,16 +76,17 @@ namespace YAMS_Updater
                 tblPortForwards.Rows.Clear();
                 IPAddress externalIP = YAMS.Networking.GetExternalIP();
                 lblExternalIP.Text = externalIP.ToString();
-                
+
                 UPnPNATClass upnpnat = new UPnPNATClass();
                 IStaticPortMappingCollection mappings = upnpnat.StaticPortMappingCollection;
 
                 progToolStrip.Maximum = mappings.Count;
-                
+
                 foreach (IStaticPortMapping p in mappings)
                 {
                     //This lists all available port mappings on the device, which could be an awful lot
-                    if (p.Description.IndexOf("YAMS") > -1) {
+                    if (p.Description.IndexOf("YAMS") > -1)
+                    {
                         //Check the port is open
                         bool portOpen = YAMS.Networking.CheckExternalPort(externalIP, p.ExternalPort);
 
@@ -101,7 +103,7 @@ namespace YAMS_Updater
             }
             catch (Exception e)
             {
-                //MessageBox.Show(e.Message);
+                MessageBox.Show(e.Message);
             }
             lblPortStatus.Text = "Done";
         }
@@ -110,7 +112,8 @@ namespace YAMS_Updater
         {
             ServiceController svcYAMS = new ServiceController("YAMS_Service");
 
-            switch (svcYAMS.Status) {
+            switch (svcYAMS.Status)
+            {
                 case ServiceControllerStatus.Stopped:
                     lblStatus.Text = "Stopped";
                     btnStop.Enabled = false;

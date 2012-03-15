@@ -6,7 +6,6 @@ using System.Timers;
 using System.Net;
 using System.Collections.Generic;
 using YAMS;
-using YAMS.Objects;
 
 namespace YAMS
 {
@@ -15,7 +14,7 @@ namespace YAMS
         public bool Running = false;
         private bool bolEnableJavaOptimisations = true;
         private int intAssignedMem = 1024;
-        
+
         private string strWorkingDir = "";
         public string ServerDirectory;
 
@@ -40,21 +39,12 @@ namespace YAMS
         public int ServerID;
         public string ServerVersion = "";
         public string ServerTitle = "";
-        public string LogonMode = "blacklist";
         public bool HasChanged = false;
         public int PID;
-        public int GameMode = 0;
         public int Port = 0;
         public string ListenIP = "";
 
         private bool SafeStop = false;
-        public bool AutoRestart = true;
-
-        public bool RestartNeeded = false;
-
-        public bool RestartWhenFree = false;
-
-        public Dictionary<string, Player> Players = new Dictionary<string, Player> { };
 
         public MCServer(int intServerID)
         {
@@ -70,10 +60,10 @@ namespace YAMS
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
-            this.LogonMode = Convert.ToString(Database.GetSetting(this.ServerID, "ServerLogonMode"));
+
             this.ListenIP = this.GetProperty("server-ip");
             this.Port = Convert.ToInt32(this.GetProperty("server-port"));
-            
+
         }
 
         public string GetProperty(string strPropertyName)
@@ -102,8 +92,6 @@ namespace YAMS
             this.intAssignedMem = Convert.ToInt32(Database.GetSetting(this.ServerID, "ServerAssignedMemory"));
             this.ServerTitle = Convert.ToString(Database.GetSetting(this.ServerID, "ServerTitle"));
             this.ServerType = Convert.ToString(Database.GetSetting(this.ServerID, "ServerType"));
-            this.RestartWhenFree = false;
-            this.RestartNeeded = false;
 
             //What type of server are we running?
             string strFile = "";
@@ -127,7 +115,7 @@ namespace YAMS
             if (!Util.ReplaceFile(Core.RootFolder + "\\lib\\" + strFile, Core.RootFolder + "\\lib\\" + strFile + ".UPDATE")) return;
 
             //Also check if a new properties file is to be applied
-            if (!Util.ReplaceFile(this.strWorkingDir + "server.properties", this.strWorkingDir + "server.properties.UPDATE")) return;
+            if (!Util.ReplaceFile(this.strWorkingDir + @"\server.properties", this.strWorkingDir + @"\server.properties.UPDATE")) return;
 
             this.prcMinecraft = new Process();
 
@@ -136,9 +124,9 @@ namespace YAMS
                 var strArgs = "";
                 var strFileName = YAMS.Util.JavaPath() + "java.exe";
 
-                if (File.Exists(this.strWorkingDir + "args.txt"))
+                if (File.Exists(this.ServerDirectory + @"\args.txt"))
                 {
-                    StreamReader reader = new StreamReader(this.strWorkingDir + "args.txt");
+                    StreamReader reader = new StreamReader(this.ServerDirectory + @"\args.txt");
                     String text = reader.ReadToEnd();
                     reader.Close();
                     strArgs = text;
@@ -181,7 +169,7 @@ namespace YAMS
                 this.prcMinecraft.ErrorDataReceived += new DataReceivedEventHandler(ServerError);
                 this.prcMinecraft.EnableRaisingEvents = true;
                 this.prcMinecraft.Exited += new EventHandler(ServerExited);
-                
+
                 //Finally start the thing
                 this.prcMinecraft.Start();
                 this.prcMinecraft.BeginOutputReadLine();
@@ -191,9 +179,6 @@ namespace YAMS
                 this.SafeStop = false;
                 Database.AddLog("Server Started: " + strArgs, "server", "info", false, this.ServerID);
 
-                //Try and open the firewall port
-                if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true") Networking.OpenFirewallPort(this.Port, this.ServerTitle);
-
                 //Save the process ID so we can kill if there is a crash
                 this.PID = this.prcMinecraft.Id;
                 Util.AddPID(this.prcMinecraft.Id);
@@ -202,7 +187,7 @@ namespace YAMS
             {
                 Database.AddLog("Failed to start Server: " + e.Message, "library", "error", false, this.ServerID);
             }
-            
+
         }
 
         public void Stop()
@@ -223,20 +208,6 @@ namespace YAMS
             this.Stop();
             System.Threading.Thread.Sleep(10000);
             this.Start();
-        }
-
-        public void RestartIfEmpty()
-        {
-            if (this.Players.Count == 0)
-            {
-                this.RestartWhenFree = false;
-                this.Restart();
-            }
-            else
-            {
-                Database.AddLog("Deferred Restart until empty", "app", "warn", true, this.ServerID);
-                this.RestartWhenFree = true;
-            }
         }
 
         //Restart the server after specified number of seconds and warn users it's going to happen
@@ -267,8 +238,8 @@ namespace YAMS
             }
             else if (this.intRestartSeconds <= 0)
             {
-               timRestarter.Enabled = false;
-               this.Restart();
+                timRestarter.Enabled = false;
+                this.Restart();
             }
 
             this.intRestartSeconds--;
@@ -306,10 +277,6 @@ namespace YAMS
             //Generally this needs a long wait
             System.Threading.Thread.Sleep(10000);
         }
-        public void Whisper(string strUsername, string strMessage)
-        {
-            this.Send("tell " + strUsername + " " + strMessage);
-        }
 
         //Catch the output from the server process
         private void ServerOutput(object sender, DataReceivedEventArgs e) { if (e.Data != null && e.Data != ">") YAMS.Database.AddLog(DateTime.Now, e.Data, "server", "out", false, this.ServerID); }
@@ -319,7 +286,7 @@ namespace YAMS
 
             //Catch null messages (usually as server is going down)
             if (e.Data == null || e.Data == ">") return;
-           
+
             //MC's server seems to use stderr for things that aren't really errors, so we need some logic to catch that.
             string strLevel = "info";
             string strMessage = e.Data;
@@ -339,16 +306,8 @@ namespace YAMS
                         //Check if it's player chat
                         if (regPlayerChat.Match(strMessage).Success || regPlayerPM.Match(strMessage).Success || regConsoleChat.Match(strMessage).Success) strLevel = "chat";
                         else strLevel = "info";
-                        
-                        //See if it's a log in or log out event
-                        if (regPlayerLoggedIn.Match(strMessage).Success) this.PlayerLogin(regPlayerLoggedIn.Match(strMessage).Groups[1].Value); //is a login event
-                        if (regPlayerLoggedOut.Match(strMessage).Success) this.PlayerLogout(regPlayerLoggedOut.Match(strMessage).Groups[1].Value); //logout event
-
                         //See if it's the server version tag
                         if (regServerVersion.Match(strMessage).Success) this.ServerVersion = strMessage.Replace("Starting minecraft server version ", "");
-
-                        //Detect game type
-                        if (regGameMode.Match(strMessage).Success) this.GameMode = Convert.ToInt32(regGameMode.Match(strMessage).Groups[1].Value);
                         break;
                     case "WARNING":
                         strLevel = "warn";
@@ -362,10 +321,8 @@ namespace YAMS
 
             if (strMessage.IndexOf("Invalid or corrupt jarfile ") > -1)
             {
-                //We have downloaded a corrupt jar, clear the download cache and force a re-download now
-                this.SafeStop = true;                
+                this.SafeStop = true;
             }
-
             Database.AddLog(datTimeStamp, strMessage, "server", strLevel, false, this.ServerID);
         }
 
@@ -375,11 +332,6 @@ namespace YAMS
             Database.AddLog(datTimeStamp, "Server Exited", "server", "warn", false, this.ServerID);
             this.Running = false;
             Util.RemovePID(this.PID);
-            //Close firewall
-            if (Database.GetSetting("EnableOpenFirewall", "YAMS") == "true") Networking.CloseFirewallPort(this.Port);
-
-            //Server has stopped, so clear out any entries in the user list
-            this.Players.Clear();
 
             //Did the server stop safely?
             if (!this.SafeStop)
@@ -387,26 +339,6 @@ namespace YAMS
                 System.Threading.Thread.Sleep(10000);
                 this.Start();
             }
-        }
-
-        //Login and out events
-        private void PlayerLogin(string strName)
-        {
-            int intCounter = 0;
-            string strSafeName = strName;
-            while (this.Players.ContainsKey(strSafeName)) {
-                //Player is logged in? Change their temp name
-                intCounter++;
-                strSafeName = strName + "-" + intCounter.ToString();
-            }
-            this.Players.Add(strSafeName, new Objects.Player(strName, this));
-            this.HasChanged = true;
-        }
-        private void PlayerLogout(string strName)
-        {
-            this.Players.Remove(strName);
-            //Check if we should restart the server for an update or a request
-            if (this.RestartWhenFree) this.RestartIfEmpty();
         }
 
         //Returns the amount of RAM being used by this server
@@ -427,43 +359,8 @@ namespace YAMS
             {
                 this.prcMinecraft.Refresh();
                 return Convert.ToInt32(this.prcMinecraft.VirtualMemorySize64 / (1024 * 1024));
-            } else { return 0; }
-        }
-
-        /// <summary>
-        /// Wipes the world for this server and optionally resets the seed in the server.properties
-        /// </summary>
-        /// <param name="bolRandomSeed">Boolean indicating if a new seed is required</param>
-        public void ClearWorld(bool bolRandomSeed)
-        {
-            bool bolWasRunning = false;
-            if (this.Running)
-            {
-                this.Send("backup");
-                bolWasRunning = true;
-                this.Stop();
             }
-            else
-            {
-                Database.AddLog(DateTime.Now, "Start server and try again", "server", "info", false, this.ServerID);
-                return;
-            }
-            //Backup.BackupNow(this);
-            
-
-            Directory.Delete(this.ServerDirectory + "\\world", true);
-            Database.AddLog(DateTime.Now, "World Deleted", "server", "info", false, this.ServerID);
-            Directory.CreateDirectory(this.ServerDirectory + "\\world");
-
-            if (bolRandomSeed)
-            {
-                Random random = new Random();
-                string strRandomSeed = random.Next(-2147483648, 2147483647).ToString();  //These are the upper and lower limits for a seed number in Minecraft
-                this.SaveProperty("level-seed", strRandomSeed);
-                Database.AddLog(DateTime.Now, "Seed Changed to " + strRandomSeed, "server", "info", false, this.ServerID);
-            }
-
-            if (bolWasRunning) this.Start();
+            else { return 0; }
         }
 
         //Read contents of a config file into a list

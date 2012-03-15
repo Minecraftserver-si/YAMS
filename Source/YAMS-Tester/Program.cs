@@ -49,7 +49,7 @@ namespace YAMS_Gui
 
             //Start Webserver
             WebServer.Init();
-        
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmMain());

@@ -23,11 +23,11 @@ namespace YAMS_Updater
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        
+
         static void Main(string[] args)
         {
             UnhandledExceptionManager.AddHandler();
-            
+
             //We need Admin for almost everything in here
             // Needs UAC elevation for webmin to run
             WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
@@ -38,7 +38,7 @@ namespace YAMS_Updater
                 ProcessStartInfo processInfo = new ProcessStartInfo();
                 processInfo.Verb = "runas";
                 processInfo.FileName = Application.ExecutablePath;
-                if (args.Length > 0 ) processInfo.Arguments = args.ToString();
+                if (args.Length > 0) processInfo.Arguments = args.ToString();
                 try
                 {
                     Process.Start(processInfo);
@@ -56,7 +56,7 @@ namespace YAMS_Updater
 
             YAMS.Database.init();
             YAMS.Database.AddLog("YAMS-Updater run on local machine");
-            
+
             if (args.Contains<string>("/restart"))
             {
                 //We're just here to restart the service safely after some updates
@@ -98,7 +98,7 @@ namespace YAMS_Updater
                 }
                 return;
             }
-        
+
         }
 
         public static void StopService()
@@ -109,7 +109,8 @@ namespace YAMS_Updater
             {
                 Console.WriteLine("Service not running");
             }
-            else if (svcYAMS.Status.Equals(ServiceControllerStatus.StartPending)) {
+            else if (svcYAMS.Status.Equals(ServiceControllerStatus.StartPending))
+            {
                 System.Threading.Thread.Sleep(1000);
                 StopService();
             }
@@ -138,7 +139,7 @@ namespace YAMS_Updater
             {
                 //Special case for a file that shouldn't be where it is
                 if (!File.Exists(RootFolder + @"\SharpUPnP.dll") && File.Exists(RootFolder + @"\lib\SharpUPnP.dll")) File.Copy(RootFolder + @"\lib\SharpUPnP.dll", RootFolder + @"\SharpUPnP.dll");
-                
+
                 //Apply any updates to core files, these should cope with any other updates
                 if (File.Exists(RootFolder + @"\YAMS-Library.dll.UPDATE"))
                 {
@@ -175,9 +176,9 @@ namespace YAMS_Updater
                         }
                         catch (Exception e)
                         {
-                            Database.AddLog("Unable to update " + j.Name + ". Please manually rename " + j.Name + ".UPDATE to " + j.Name + " in the libs folder whilst the service is stopped.", "updater", "error");
+                            Database.AddLog("Unable to update " + j.Name + ". Please manually rename " + j.Name + ".UPDATE to " + j.Name + " in the libs folder whilst the service is stopped: " + e.Message, "updater", "error");
                         }
-                    } 
+                    }
                 }
 
                 //Restart the service

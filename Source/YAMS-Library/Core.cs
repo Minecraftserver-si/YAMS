@@ -17,7 +17,7 @@ namespace YAMS
         public double y;
         public double z;
     }
-    
+
     public static class Core
     {
         public static string RootFolder = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).DirectoryName;
@@ -63,7 +63,7 @@ namespace YAMS
                             Database.AddLog("Process " + line + " not killed: " + e.Message);
                         }
                     }
-                   
+
                     trPids.Close();
                 }
                 catch (Exception e)

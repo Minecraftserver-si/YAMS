@@ -27,11 +27,10 @@ namespace YAMS
         private static Thread adminServerThread;
 
         private static int AdminTryCount = 0;
-        private static int PublicTryCount = 0;
 
         //Control
         public static void Init()
-        {            
+        {
             adminServer = new Server();
 
             //Handle the requests for static files
@@ -66,7 +65,8 @@ namespace YAMS
         {
             try
             {
-                while(Util.PortIsBusy(Convert.ToInt32(YAMS.Database.GetSetting("AdminListenPort", "YAMS"))) && AdminTryCount < 120) {
+                while (Util.PortIsBusy(Convert.ToInt32(YAMS.Database.GetSetting("AdminListenPort", "YAMS"))) && AdminTryCount < 120)
+                {
                     AdminTryCount++;
                     Database.AddLog("Admin Web server port still in use, attempt " + AdminTryCount, "web", "warn");
                     Thread.Sleep(5000);
@@ -81,12 +81,13 @@ namespace YAMS
                 //Previous service has not released the port, so hang on and try again.
                 Database.AddLog("Admin Web server port still in use, attempt " + AdminTryCount + ": " + e.Message, "web", "warn");
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 EventLog myLog = new EventLog();
                 myLog.Source = "YAMS";
                 myLog.WriteEntry("Exception: " + e.Data, EventLogEntryType.Error);
             }
-            
+
         }
 
 
@@ -103,7 +104,7 @@ namespace YAMS
                 Networking.CloseUPnP(Convert.ToInt32(YAMS.Database.GetSetting("AdminListenPort", "YAMS")));
                 Networking.CloseUPnP(Convert.ToInt32(YAMS.Database.GetSetting("PublicListenPort", "YAMS")));
             }
-            
+
             adminServerThread.Abort();
         }
 
